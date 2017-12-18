@@ -1,6 +1,13 @@
 package scrooge;
 
+import java.util.HashSet;
+
+import scrooge.Transaction.Input;
+import scrooge.Transaction.Output;
+
 public class TxHandler {
+
+    private UTXOPool utxoPool;
 
     /**
      * Creates a public ledger whose current UTXOPool (collection of unspent transaction outputs) is
@@ -8,7 +15,7 @@ public class TxHandler {
      * constructor.
      */
     public TxHandler(UTXOPool utxoPool) {
-        // IMPLEMENT THIS
+        this.utxoPool = new UTXOPool(utxoPool);
     }
 
     /**
@@ -21,7 +28,33 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
-        // IMPLEMENT THIS
+        double inputSum = 0;
+        double outputSum = 0;
+        if (tx.getInputs().size() != new HashSet<Input>(tx.getInputs()).size()) {
+            return false;
+        }
+        for (Output txOutput : tx.getOutputs()) {
+            if (txOutput.value < 0) {
+                return false;
+            }
+            outputSum += txOutput.value;
+        }
+        for (Input txInput : tx.getInputs()) {
+            if (this.utxoPool.contains(new UTXO(txInput.prevTxHash, txInput.outputIndex))) {
+                Output txOutput = this.utxoPool.getTxOutput(new UTXO(txInput.prevTxHash, txInput.outputIndex));
+                if (Crypto.verifySignature(txOutput.address, tx.getHash(), txInput.signature)) {
+                    inputSum += txOutput.value;
+                } else {
+                    return false;
+                }
+            } else {
+                return false;
+            }
+        }
+        if (inputSum != outputSum) {
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -31,6 +64,7 @@ public class TxHandler {
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
         // IMPLEMENT THIS
+        return new Transaction[] {};
     }
 
 }
