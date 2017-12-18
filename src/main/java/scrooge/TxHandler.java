@@ -1,5 +1,6 @@
 package scrooge;
 
+import java.util.Set;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
@@ -32,14 +33,8 @@ public class TxHandler {
     public boolean isValidTx(Transaction tx) {
         double inputSum = 0;
         double outputSum = 0;
-        List<Input> uniqueInputs = new ArrayList<>();
-        tx.getInputs().forEach(txInput -> {
-            uniqueInputs.forEach(uniqueTxInput -> {
-                if (txInput.prevTxHash != uniqueTxInput.prevTxHash || txInput.outputIndex != uniqueTxInput.outputIndex) {
-                    uniqueInputs.add(txInput);
-                }
-            });
-        });
+        Set<UTXO> uniqueInputs = new HashSet<>();
+        tx.getInputs().forEach(txInput -> uniqueInputs.add(new UTXO(txInput.prevTxHash, txInput.outputIndex)));
         if (uniqueInputs.size() != tx.getInputs().size()) {
             return false;
         }
