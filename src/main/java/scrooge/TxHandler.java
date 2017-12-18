@@ -71,7 +71,6 @@ public class TxHandler {
             if (!this.isValidTx(trans)) {
                 continue;
             }
-
             for (int inputIndex=0; inputIndex < trans.getInputs().size();inputIndex++ ) {
                 Input txInput = trans.getInput(inputIndex);
                 this.utxoPool.removeUTXO(new UTXO(txInput.prevTxHash, inputIndex));
@@ -82,7 +81,7 @@ public class TxHandler {
             }
             approvedTransactions.add(trans);
         }
+        return approvedTransactions.toArray(new Transaction[approvedTransactions.size()]);
     }
-    approvedTransactions.toArray(new Transaction[approvedTransactions.size()]);
    
 }
