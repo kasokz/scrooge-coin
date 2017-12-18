@@ -1,6 +1,7 @@
 package scrooge;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.ArrayList;
 
 import scrooge.Transaction.Input;
@@ -31,7 +32,15 @@ public class TxHandler {
     public boolean isValidTx(Transaction tx) {
         double inputSum = 0;
         double outputSum = 0;
-        if (tx.getInputs().size() != new HashSet<Input>(tx.getInputs()).size()) {
+        List<Input> uniqueInputs = new ArrayList<>();
+        tx.getInputs().forEach(txInput -> {
+            uniqueInputs.forEach(uniqueTxInput -> {
+                if (txInput.prevTxHash != uniqueTxInput.prevTxHash || txInput.outputIndex != uniqueTxInput.outputIndex) {
+                    uniqueInputs.add(txInput);
+                }
+            });
+        });
+        if (uniqueInputs.size() != tx.getInputs().size()) {
             return false;
         }
         for (Output txOutput : tx.getOutputs()) {
@@ -66,22 +75,21 @@ public class TxHandler {
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
         ArrayList<Transaction> approvedTransactions = new ArrayList<Transaction>();
-        for (Transaction trans: possibleTxs)
-        {
+        for (Transaction trans : possibleTxs) {
             if (!this.isValidTx(trans)) {
                 continue;
             }
-            for (int inputIndex=0; inputIndex < trans.getInputs().size();inputIndex++ ) {
+            for (int inputIndex = 0; inputIndex < trans.getInputs().size(); inputIndex++) {
                 Input txInput = trans.getInput(inputIndex);
                 this.utxoPool.removeUTXO(new UTXO(txInput.prevTxHash, inputIndex));
             }
-            for (int outputIndex=0;outputIndex<trans.getOutputs().size();outputIndex++) {
-                Output txOutput=trans.getOutput(outputIndex);
+            for (int outputIndex = 0; outputIndex < trans.getOutputs().size(); outputIndex++) {
+                Output txOutput = trans.getOutput(outputIndex);
                 this.utxoPool.addUTXO(new UTXO(trans.getHash(), outputIndex), txOutput);
             }
             approvedTransactions.add(trans);
         }
         return approvedTransactions.toArray(new Transaction[approvedTransactions.size()]);
     }
-   
+
 }
