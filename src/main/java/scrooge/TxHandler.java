@@ -52,7 +52,7 @@ public class TxHandler {
                 return false;
             }
         }
-        if (inputSum != outputSum) {
+        if (inputSum < outputSum) {
             return false;
         }
         return true;
