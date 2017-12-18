@@ -39,10 +39,11 @@ public class TxHandler {
             }
             outputSum += txOutput.value;
         }
-        for (Input txInput : tx.getInputs()) {
+        for (int inputIndex = 0; inputIndex < tx.getInputs().size(); inputIndex++) {
+            Input txInput = tx.getInput(inputIndex);
             if (this.utxoPool.contains(new UTXO(txInput.prevTxHash, txInput.outputIndex))) {
                 Output txOutput = this.utxoPool.getTxOutput(new UTXO(txInput.prevTxHash, txInput.outputIndex));
-                if (Crypto.verifySignature(txOutput.address, tx.getHash(), txInput.signature)) {
+                if (Crypto.verifySignature(txOutput.address, tx.getRawDataToSign(inputIndex), txInput.signature)) {
                     inputSum += txOutput.value;
                 } else {
                     return false;
