@@ -1,6 +1,7 @@
 package scrooge;
 
 import java.util.HashSet;
+import java.util.ArrayList;
 
 import scrooge.Transaction.Input;
 import scrooge.Transaction.Output;
@@ -64,8 +65,24 @@ public class TxHandler {
      * updating the current UTXO pool as appropriate.
      */
     public Transaction[] handleTxs(Transaction[] possibleTxs) {
-        // IMPLEMENT THIS
-        return new Transaction[] {};
-    }
+        ArrayList<Transaction> approvedTransactions = new ArrayList<Transaction>();
+        for (Transaction trans: possibleTxs)
+        {
+            if (!this.isValidTx(trans)) {
+                continue;
+            }
 
+            for (int inputIndex=0; inputIndex < trans.getInputs().size();inputIndex++ ) {
+                Input txInput = trans.getInput(inputIndex);
+                this.utxoPool.removeUTXO(new UTXO(txInput.prevTxHash, inputIndex));
+            }
+            for (int outputIndex=0;outputIndex<trans.getOutputs().size();outputIndex++) {
+                Output txOutput=trans.getOutput(outputIndex);
+                this.utxoPool.addUTXO(new UTXO(trans.getHash(), outputIndex), txOutput);
+            }
+            approvedTransactions.add(trans);
+        }
+    }
+    approvedTransactions.toArray(new Transaction[approvedTransactions.size()]);
+   
 }
